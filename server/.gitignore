@@ -8,3 +8,6 @@ db.sqlite
 
 # Logs and temporary files
 npm-debug.log*
+
+# Environment variables file
+.env

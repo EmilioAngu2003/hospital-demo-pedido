@@ -4,6 +4,8 @@ import './App.css'
 function App() {
   const [mensaje, setMensaje] = useState('Esperando envío de pedido...');
   
+  const MY_API_KEY = 'mi-clave-super-secreta-de-hospital-demo-2025';
+  
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
   const API_URL = `${API_BASE_URL}/api/pedidos`;
 
@@ -22,6 +24,7 @@ function App() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-api-key': MY_API_KEY,
         },
         body: JSON.stringify(pedidoDemo),
       });
