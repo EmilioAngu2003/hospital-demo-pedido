@@ -96,3 +96,21 @@ table th {
 .urgente {
   color: red;
 }
+
+@media (max-width: 768px) {
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  table th,
+  table td {
+    min-width: 100px;
+  }
+
+  table th:first-child,
+  table td:first-child {
+    min-width: 50px;
+  }
+}
