@@ -2,41 +2,97 @@
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  gap: 2rem;
+}
+
+section {
+  width: 100%;
+  padding: 20px;
+  font-family: sans-serif;
+  border: 1px solid gray;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+h1 {
   text-align: center;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+h2 {
+  border-bottom: 2px solid gray;
+  padding-bottom: 10px;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+label {
+  font-weight: bold;
 }
 
-.card {
-  padding: 2em;
+input[type="number"],
+select {
+  display: block;
+  width: 100%;
+  padding: 8px;
 }
 
-.read-the-docs {
-  color: #888;
+select,
+input[type="number"] {
+  border: 1px solid gray;
+  border-radius: 4px;
+}
+
+input[type="checkbox"] {
+  display: inline-block;
+  margin-right: 10px;
+}
+
+button,
+select,
+input[type="checkbox"],
+input[type="checkbox"]+label {
+  cursor: pointer;
+}
+
+button {
+  display: block;
+  background-color: steelblue;
+  color: white;
+  font-size: 16px;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+table th,
+table td {
+  padding: 8px;
+  text-align: left;
+}
+
+table td {
+  border: 1px solid gray;
+}
+
+table th {
+  background-color: steelblue;
+  color: white;
+}
+
+.urgente {
+  color: red;
 }
