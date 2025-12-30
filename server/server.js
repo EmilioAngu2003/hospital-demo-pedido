@@ -79,6 +79,55 @@ app.get("/api/config/opciones", apiKeyAuth, (req, res) => {
   res.json(OPCIONES_PEDIDO);
 });
 
+const adminAuth = (req, res, next) => {
+  const userDni = req.header("x-user-dni");
+  const adminWhitelist = process.env.ADMIN_WHITELIST.split(",");
+  if (adminWhitelist.includes(userDni)) {
+    next();
+  } else {
+    res.status(403).json({ error: "Acceso no autorizado" });
+  }
+};
+
+app.get("/api/auth/admin", apiKeyAuth, adminAuth, (req, res) => {
+  res.json({ isAdmin: true, message: "Identidad de administrador confirmada" });
+});
+
+app.patch("/api/pedidos/:id", apiKeyAuth, adminAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { estado } = req.body;
+
+    const pedidoActualizado = await Pedido.findByIdAndUpdate(
+      id,
+      { estado: estado },
+      { new: true }
+    );
+
+    if (!pedidoActualizado) {
+      return res.status(404).json({ error: "Pedido no encontrado" });
+    }
+
+    res.json({
+      mensaje: "Estado actualizado correctamente",
+      pedido: pedidoActualizado,
+    });
+  } catch (error) {
+    console.error("Error al actualizar:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+});
+
+app.delete("/api/pedidos/:id", apiKeyAuth, adminAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Pedido.findByIdAndDelete(id);
+    res.json({ mensaje: "Pedido eliminado con éxito" });
+  } catch (error) {
+    res.status(500).json({ error: "No se pudo eliminar el pedido" });
+  }
+});
+
 app.listen(port, () => {
   console.log(`🚀 Servidor Express escuchando en http://localhost:${port}`);
 });
