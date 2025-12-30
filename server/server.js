@@ -1,11 +1,18 @@
 const express = require("express");
 const cors = require("cors");
+const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 
 dotenv.config({ path: ".env" });
 
 const app = express();
 const port = process.env.PORT || 3001;
+const mongoURI = process.env.MONGO_URI;
+
+mongoose
+  .connect(mongoURI)
+  .then(() => console.log("✅ Conectado a MongoDB Atlas"))
+  .catch((err) => console.error("🔴 Error de conexión a MongoDB:", err));
 
 const API_KEY = process.env.API_KEY_SECRET;
 if (!API_KEY) {
