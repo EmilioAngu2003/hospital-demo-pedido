@@ -76,6 +76,12 @@ function App() {
 
     if (usuario) {
       obtenerPedidos();
+
+      const intervalo = setInterval(() => {
+        obtenerPedidos();
+      }, 5000);
+
+      return () => clearInterval(intervalo);
     }
   }, [usuario]);
 
