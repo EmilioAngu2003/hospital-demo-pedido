@@ -1,4 +1,6 @@
 import { useState } from "react";
+import TablaPedidos from "./components/TablaPedidos";
+import PedidoForm from "./components/PedidoForm";
 
 const MY_API_KEY =
   import.meta.env.VITE_MY_API_KEY ||
@@ -76,69 +78,13 @@ function App() {
         <h2 className="text-xl font-semibold border-b-2 border-gray pb-2.5">
           🏥 Interfaz de Departamento (Crear Pedido)
         </h2>
-        <form className="flex flex-col gap-3 text-base" onSubmit={handleSubmit}>
-          <div className="flex flex-col gap-2">
-            <label className="font-bold">Departamento</label>
-            <select
-              name="departamento"
-              value={pedido.departamento}
-              onChange={handleChange}
-              className="p-2 border border-gray rounded cursor-pointer"
-            >
-              {DEPARTMENTS.map((d) => (
-                <option className="bg-base-100" key={d} value={d}>
-                  {d}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-bold">Producto</label>
-            <select
-              name="producto"
-              value={pedido.producto}
-              onChange={handleChange}
-              className="block w-full p-2 border border-gray rounded cursor-pointer"
-            >
-              {PRODUCTS.map((p) => (
-                <option className="bg-base-100" key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex flex-col gap-2">
-            <label className="font-bold">Cantidad</label>
-            <input
-              type="number"
-              name="cantidad"
-              value={pedido.cantidad}
-              onChange={handleChange}
-              min="1"
-              className="block w-full p-2 border border-gray rounded"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              id="urgente"
-              type="checkbox"
-              name="urgente"
-              checked={pedido.urgente}
-              onChange={handleChange}
-              className="cursor-pointer"
-            />
-            <label className="font-bold cursor-pointer" for="urgente">
-              Pedido Urgente
-            </label>
-          </div>
-
-          <button
-            type="submit"
-            className="block w-full bg-primary text-white text-base rounded-lg p-2.5 cursor-pointer hover:opacity-90 transition-opacity"
-          >
-            Enviar Pedido
-          </button>
-        </form>
+        <PedidoForm
+          handleSubmit={handleSubmit}
+          handleChange={handleChange}
+          pedido={pedido}
+          departamentos={DEPARTMENTS}
+          materiales={PRODUCTS}
+        />
         <p className="text-base message-status">Estado: {mensaje}</p>
       </section>
 
@@ -155,62 +101,5 @@ function App() {
     </div>
   );
 }
-
-const TablaPedidos = ({ pedidos }) => (
-  <div className="w-full overflow-x-auto rounded-lg border border-gray">
-    <table className="w-full text-left text-sm md:text-base border-collapse">
-      <thead className="bg-primary text-white">
-        <tr className="*:p-3">
-          <th>ID</th>
-          <th>Departamento</th>
-          <th>Producto</th>
-          <th>Cantidad</th>
-          <th>Urgente</th>
-          <th>Estado</th>
-        </tr>
-      </thead>
-      <tbody>
-        {pedidos.length === 0 ? (
-          <tr>
-            <td colSpan="6" className="p-8 text-center border-gray border">
-              No hay pedidos enviados.
-            </td>
-          </tr>
-        ) : (
-          pedidos.map((p) => (
-            <tr
-              key={p.id}
-              className={`border-b border-gray transition-colors hover:bg-gray/5`}
-            >
-              <td className="p-3 border-r border-gray/10">#{p.id % 1000}</td>
-              <td className="p-3 border-r border-gray/10">{p.departamento}</td>
-              <td className="p-3 border-r border-gray/10 font-medium">
-                {p.producto}
-              </td>
-              <td className="p-3 border-r border-gray/10 text-center">
-                {p.cantidad}
-              </td>
-              <td className="p-3 border-r border-gray/10">
-                {p.urgente ? (
-                  <span className="bg-red-100 text-red-700 px-2 py-1 rounded-sm text-xs">
-                    🚨 SÍ
-                  </span>
-                ) : (
-                  <span className="text-gray/50 italic">No</span>
-                )}
-              </td>
-              <td className="p-3 capitalize">
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-green-500"></span>
-                  {p.estado}
-                </span>
-              </td>
-            </tr>
-          ))
-        )}
-      </tbody>
-    </table>
-  </div>
-);
 
 export default App;
