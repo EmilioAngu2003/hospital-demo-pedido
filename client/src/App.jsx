@@ -1,6 +1,8 @@
 import { useState } from "react";
+import RegistroUsuario from "./components/RegistroUsuario";
 import TablaPedidos from "./components/TablaPedidos";
 import PedidoForm from "./components/PedidoForm";
+import BotonCerrarSesion from "./components/BotonCerrarSesion";
 
 const MY_API_KEY =
   import.meta.env.VITE_MY_API_KEY ||
@@ -18,6 +20,10 @@ const PRODUCTS = [
 ];
 
 function App() {
+  const [usuario, setUsuario] = useState(
+    JSON.parse(localStorage.getItem("usuario_hospital"))
+  );
+
   const [pedido, setPedido] = useState({
     departamento: DEPARTMENTS[0],
     producto: PRODUCTS[0],
@@ -69,36 +75,44 @@ function App() {
     }
   };
 
-  return (
-    <div className="max-w-7xl mx-auto p-8 flex flex-col justify-start gap-8">
-      <h1 className="text-3xl font-bold text-center">
-        Sistema de Pedidos Hospitalarios
-      </h1>
-      <section className="w-full p-5 font-sans border border-gray rounded-lg flex flex-col gap-4">
-        <h2 className="text-xl font-semibold border-b-2 border-gray pb-2.5">
-          🏥 Interfaz de Departamento (Crear Pedido)
-        </h2>
-        <PedidoForm
-          handleSubmit={handleSubmit}
-          handleChange={handleChange}
-          pedido={pedido}
-          departamentos={DEPARTMENTS}
-          materiales={PRODUCTS}
-        />
-        <p className="text-base message-status">Estado: {mensaje}</p>
-      </section>
+  return !usuario ? (
+    <RegistroUsuario
+      onRegistroExitoso={(datos) => setUsuario(datos)}
+      departamentos={DEPARTMENTS}
+    />
+  ) : (
+    <>
+      <div className="max-w-7xl mx-auto p-8 flex flex-col justify-start gap-8">
+        <h1 className="text-3xl font-bold text-center">
+          Sistema de Pedidos Hospitalarios
+        </h1>
+        <section className="w-full p-5 font-sans border border-gray rounded-lg flex flex-col gap-4">
+          <h2 className="text-xl font-semibold border-b-2 border-gray pb-2.5">
+            🏥 Interfaz de Departamento (Crear Pedido)
+          </h2>
+          <PedidoForm
+            handleSubmit={handleSubmit}
+            handleChange={handleChange}
+            pedido={pedido}
+            departamentos={DEPARTMENTS}
+            materiales={PRODUCTS}
+          />
+          <p className="text-base message-status">Estado: {mensaje}</p>
+        </section>
 
-      <section className="w-full p-5 font-sans border border-gray rounded-lg flex flex-col gap-4">
-        <h2 className="text-xl font-semibold border-b-2 border-gray pb-2.5">
-          📦 Interfaz de Almacén (Pedidos Recibidos)
-        </h2>
-        <p className="text-sm italic">
-          NOTA: Esta tabla simula la recepción de pedidos en el Frontend. En la
-          fase 2, esta tabla obtendrá datos del Backend.
-        </p>
-        <TablaPedidos pedidos={pedidosEnviados} />
-      </section>
-    </div>
+        <section className="w-full p-5 font-sans border border-gray rounded-lg flex flex-col gap-4">
+          <h2 className="text-xl font-semibold border-b-2 border-gray pb-2.5">
+            📦 Interfaz de Almacén (Pedidos Recibidos)
+          </h2>
+          <p className="text-sm italic">
+            NOTA: Esta tabla simula la recepción de pedidos en el Frontend. En
+            la fase 2, esta tabla obtendrá datos del Backend.
+          </p>
+          <TablaPedidos pedidos={pedidosEnviados} />
+        </section>
+      </div>
+      <BotonCerrarSesion setUsuario={setUsuario} />
+    </>
   );
 }
 
