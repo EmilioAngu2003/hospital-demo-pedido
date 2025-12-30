@@ -23,6 +23,7 @@
   --color-primary: var(--primary);
   --color-danger: var(--danger);
   --color-white: white;
+  --color-black: black;
 }
 
 @layer base {
