@@ -4,11 +4,8 @@ import TablaPedidos from "./components/TablaPedidos";
 import PedidoForm from "./components/PedidoForm";
 import BotonCerrarSesion from "./components/BotonCerrarSesion";
 
-const MY_API_KEY =
-  import.meta.env.VITE_MY_API_KEY ||
-  "mi-clave-super-secreta-de-hospital-demo-2025";
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3001";
+const MY_API_KEY = import.meta.env.VITE_MY_API_KEY;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function App() {
   const [opciones, setOpciones] = useState({ materiales: [], servicios: [] });
