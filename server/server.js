@@ -1,6 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const Pedido = require("./models/Pedido");
+const OPCIONES_PEDIDO = require("./constants");
 const dotenv = require("dotenv");
 
 dotenv.config({ path: ".env" });
@@ -36,14 +38,45 @@ app.get("/", (req, res) => {
   res.send("Servidor Express funcionando para la demo!");
 });
 
-app.post("/api/pedidos", apiKeyAuth, (req, res) => {
-  const nuevoPedido = req.body;
-  console.log("Pedido Recibido:", nuevoPedido);
+app.post("/api/pedidos", apiKeyAuth, async (req, res) => {
+  try {
+    console.log("Pedido Recibido:", req.body);
 
-  res.status(201).json({
-    message: "Pedido registrado con éxito",
-    data: nuevoPedido,
-  });
+    const { material, cantidad, urgente, usuario, servicio } = req.body;
+
+    const nuevoPedido = new Pedido({
+      material,
+      cantidad,
+      urgente,
+      usuario,
+      servicio,
+    });
+
+    const pedidoGuardado = await nuevoPedido.save();
+
+    console.log("Pedido guardado:", pedidoGuardado);
+
+    res.status(201).json({
+      mensaje: "Pedido registrado con éxito",
+      pedido: pedidoGuardado,
+    });
+  } catch (error) {
+    console.error("Error al guardar:", error);
+    res.status(400).json({ message: "Error al guardar el pedido" });
+  }
+});
+
+app.get("/api/pedidos", apiKeyAuth, async (req, res) => {
+  try {
+    const pedidos = await Pedido.find().sort({ fecha: -1 });
+    res.json(pedidos);
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener pedidos" });
+  }
+});
+
+app.get("/api/config/opciones", apiKeyAuth, (req, res) => {
+  res.json(OPCIONES_PEDIDO);
 });
 
 app.listen(port, () => {
