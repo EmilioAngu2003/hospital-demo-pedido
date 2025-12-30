@@ -1,10 +1,11 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
-const app = express();
-const port = 3001;
 
 dotenv.config({ path: ".env" });
+
+const app = express();
+const port = process.env.PORT || 3001;
 
 const API_KEY = process.env.API_KEY_SECRET;
 if (!API_KEY) {
@@ -14,23 +15,14 @@ if (!API_KEY) {
 
 const apiKeyAuth = (req, res, next) => {
   const clientApiKey = req.header("x-api-key");
-
   if (clientApiKey && clientApiKey === API_KEY) {
     next();
   } else {
-    res
-      .status(401)
-      .json({ error: "Acceso no autorizado: Clave API inválida o faltante." });
+    res.status(401).json({ error: "Acceso no autorizado" });
   }
 };
 
-const allowedOrigin = process.env.CORS_ORIGIN || "http://localhost:5173";
-const corsOptions = {
-  origin: allowedOrigin,
-  optionsSuccessStatus: 200,
-};
-
-app.use(cors(corsOptions));
+app.use(cors({ origin: process.env.CORS_ORIGIN || "*" }));
 app.use(express.json());
 
 app.get("/", (req, res) => {
