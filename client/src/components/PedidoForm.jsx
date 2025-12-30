@@ -1,36 +1,15 @@
-const PedidoForm = ({
-  handleSubmit,
-  handleChange,
-  pedido,
-  departamentos,
-  materiales,
-}) => (
+const PedidoForm = ({ handleSubmit, handleChange, pedido, materiales }) => (
   <form className="flex flex-col gap-3 text-base" onSubmit={handleSubmit}>
-    <div className="flex flex-col gap-2">
-      <label className="font-bold">Departamento</label>
-      <select
-        name="departamento"
-        value={pedido.departamento}
-        onChange={handleChange}
-        className="p-2 border border-gray rounded cursor-pointer"
-      >
-        {departamentos.map((d) => (
-          <option className="bg-base-100" key={d} value={d}>
-            {d}
-          </option>
-        ))}
-      </select>
-    </div>
     <div className="flex flex-col gap-2">
       <label className="font-bold">Material</label>
       <select
-        name="producto"
-        value={pedido.producto}
+        name="material"
+        value={pedido.material}
         onChange={handleChange}
-        className="block w-full p-2 border border-gray rounded cursor-pointer"
+        className="block w-full p-2 border border-gray rounded cursor-pointer *:bg-base-100"
       >
         {materiales.map((m) => (
-          <option className="bg-base-100" key={m} value={m}>
+          <option key={m} value={m}>
             {m}
           </option>
         ))}

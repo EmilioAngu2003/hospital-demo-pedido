@@ -4,8 +4,8 @@ const TablaPedidos = ({ pedidos }) => (
       <thead className="bg-primary text-white">
         <tr className="*:p-3">
           <th>ID</th>
-          <th>Departamento</th>
-          <th>Producto</th>
+          <th>Servicio</th>
+          <th>Material</th>
           <th>Cantidad</th>
           <th>Urgente</th>
           <th>Estado</th>
@@ -24,14 +24,14 @@ const TablaPedidos = ({ pedidos }) => (
               key={p.id}
               className={`border-b border-gray transition-colors hover:bg-gray/5`}
             >
-              <td className="p-3 border-r border-gray/10">#{p.id % 1000}</td>
-              <td className="p-3 border-r border-gray/10">{p.departamento}</td>
+              <td className="p-3 border-r border-gray/10">
+                {p.id.slice(-6).toUpperCase()}...
+              </td>
+              <td className="p-3 border-r border-gray/10">{p.servicio}</td>
               <td className="p-3 border-r border-gray/10 font-medium">
-                {p.producto}
+                {p.material}
               </td>
-              <td className="p-3 border-r border-gray/10 text-center">
-                {p.cantidad}
-              </td>
+              <td className="p-3 border-r border-gray/10">{p.cantidad}</td>
               <td className="p-3 border-r border-gray/10">
                 {p.urgente ? (
                   <span className="bg-red-100 text-red-700 px-2 py-1 rounded-sm text-xs">

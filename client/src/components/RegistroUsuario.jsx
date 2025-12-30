@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const RegistroUsuario = ({ onRegistroExitoso, departamentos }) => {
+const RegistroUsuario = ({ onRegistroExitoso, servicios }) => {
   const [formData, setFormData] = useState({
     nombre: "",
     dni: "",
@@ -16,8 +16,11 @@ const RegistroUsuario = ({ onRegistroExitoso, departamentos }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    localStorage.setItem("usuario_hospital", JSON.stringify(formData));
-    onRegistroExitoso(formData);
+    const usuario = { nombre: formData.nombre, dni: formData.dni };
+    const servicio = formData.servicio;
+    localStorage.setItem("usuario", JSON.stringify(usuario));
+    localStorage.setItem("servicio", servicio);
+    onRegistroExitoso(usuario, servicio);
   };
 
   return (
@@ -50,17 +53,15 @@ const RegistroUsuario = ({ onRegistroExitoso, departamentos }) => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium">
-              Servicio / Unidad
-            </label>
+            <label className="block text-sm font-medium">Servicio</label>
             <select
               name="servicio"
               required
               className="mt-1 block w-full border border-gray rounded-md p-2 shadow-sm *:bg-base-100"
               onChange={handleChange}
             >
-              <option value="">Seleccione una unidad</option>
-              {departamentos.map((d) => (
+              <option value="">Seleccione un servicio</option>
+              {servicios.map((d) => (
                 <option className="bg-base-100" key={d} value={d}>
                   {d}
                 </option>

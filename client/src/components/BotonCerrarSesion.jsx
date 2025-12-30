@@ -1,9 +1,11 @@
 import React from "react";
 
-const BotonCerrarSesion = ({ setUsuario }) => {
+const BotonCerrarSesion = ({ setUsuario, setServicio }) => {
   const handleLogout = () => {
-    localStorage.removeItem("user");
+    localStorage.removeItem("usuario");
+    localStorage.removeItem("servicio");
     setUsuario(null);
+    setServicio(null);
   };
 
   return (

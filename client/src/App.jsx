@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import RegistroUsuario from "./components/RegistroUsuario";
 import TablaPedidos from "./components/TablaPedidos";
 import PedidoForm from "./components/PedidoForm";
@@ -9,31 +9,66 @@ const MY_API_KEY =
   "mi-clave-super-secreta-de-hospital-demo-2025";
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:3001";
-const API_URL = `${API_BASE_URL}/api/pedidos`;
-
-const DEPARTMENTS = ["Urgencias", "Farmacia", "UCI", "Laboratorio"];
-const PRODUCTS = [
-  "Jeringas 5ml",
-  "Guantes de Látex",
-  "Paracetamol 500mg",
-  "Sondas",
-];
 
 function App() {
+  const [opciones, setOpciones] = useState({ materiales: [], servicios: [] });
   const [usuario, setUsuario] = useState(
-    JSON.parse(localStorage.getItem("usuario_hospital"))
+    JSON.parse(localStorage.getItem("usuario"))
   );
-
+  const [servicio, setServicio] = useState(localStorage.getItem("servicio"));
   const [pedido, setPedido] = useState({
-    departamento: DEPARTMENTS[0],
-    producto: PRODUCTS[0],
+    material: null,
     cantidad: 1,
     urgente: false,
-    observaciones: "",
   });
-
   const [mensaje, setMensaje] = useState("Esperando envío de pedido...");
   const [pedidosEnviados, setPedidosEnviados] = useState([]);
+
+  useEffect(() => {
+    const obtenerOpciones = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/config/opciones`, {
+          method: "GET",
+          headers: {
+            "x-api-key": MY_API_KEY,
+          },
+        });
+        const data = await response.json();
+        setOpciones(data);
+        setPedido((prev) => ({ ...prev, material: data.materiales[0] }));
+      } catch (error) {
+        console.error("Error al obtener opciones:", error);
+      }
+    };
+
+    obtenerOpciones();
+  }, []);
+
+  useEffect(() => {
+    const obtenerPedidos = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/pedidos`, {
+          method: "GET",
+          headers: {
+            "x-api-key": MY_API_KEY,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setPedidosEnviados(data);
+        } else {
+          console.error("Error al obtener pedidos del servidor");
+        }
+      } catch (error) {
+        console.error("Error de red:", error);
+      }
+    };
+
+    if (usuario) {
+      obtenerPedidos();
+    }
+  }, [usuario]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -47,38 +82,39 @@ function App() {
     e.preventDefault();
     setMensaje("Enviando pedido...");
 
+    const nuevoPedido = { ...pedido, usuario: usuario, servicio: servicio };
+
+    console.log("Pedido a enviar:", nuevoPedido);
+
     try {
-      const response = await fetch(API_URL, {
+      const response = await fetch(`${API_BASE_URL}/api/pedidos`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "x-api-key": MY_API_KEY,
         },
-        body: JSON.stringify(pedido),
+        body: JSON.stringify(nuevoPedido),
       });
 
-      const data = await response.json();
-
       if (response.ok) {
-        setMensaje(`✅ Éxito: ${data.message} - ${pedido.producto}`);
-        setPedidosEnviados((prev) => [
-          { id: Date.now(), ...pedido, estado: "Pendiente" },
-          ...prev,
-        ]);
+        const data = await response.json();
+        setPedidosEnviados((prev) => [{ ...data.pedido }, ...prev]);
+        setMensaje("¡Pedido enviado con éxito!");
       } else {
         setMensaje(`❌ Error al enviar. Estado: ${response.status}`);
       }
     } catch (error) {
-      setMensaje(
-        `❌ Error de conexión: ${error.message}. ¿Está el servidor Express corriendo en ${API_URL}?`
-      );
+      setMensaje(`❌ Error de conexión: ${error.message}`);
     }
   };
 
-  return !usuario ? (
+  return !usuario || !servicio ? (
     <RegistroUsuario
-      onRegistroExitoso={(datos) => setUsuario(datos)}
-      departamentos={DEPARTMENTS}
+      onRegistroExitoso={(usuario, servicio) => {
+        setUsuario(usuario);
+        setServicio(servicio);
+      }}
+      servicios={opciones.servicios}
     />
   ) : (
     <>
@@ -87,31 +123,26 @@ function App() {
           Sistema de Pedidos Hospitalarios
         </h1>
         <section className="w-full p-5 font-sans border border-gray rounded-lg flex flex-col gap-4">
-          <h2 className="text-xl font-semibold border-b-2 border-gray pb-2.5">
+          <h2 className="text-xl font-semibold pb-2.5">
             🏥 Interfaz de Departamento (Crear Pedido)
           </h2>
           <PedidoForm
             handleSubmit={handleSubmit}
             handleChange={handleChange}
             pedido={pedido}
-            departamentos={DEPARTMENTS}
-            materiales={PRODUCTS}
+            materiales={opciones.materiales}
           />
           <p className="text-base message-status">Estado: {mensaje}</p>
         </section>
 
         <section className="w-full p-5 font-sans border border-gray rounded-lg flex flex-col gap-4">
-          <h2 className="text-xl font-semibold border-b-2 border-gray pb-2.5">
+          <h2 className="text-xl font-semibold pb-2.5">
             📦 Interfaz de Almacén (Pedidos Recibidos)
           </h2>
-          <p className="text-sm italic">
-            NOTA: Esta tabla simula la recepción de pedidos en el Frontend. En
-            la fase 2, esta tabla obtendrá datos del Backend.
-          </p>
           <TablaPedidos pedidos={pedidosEnviados} />
         </section>
       </div>
-      <BotonCerrarSesion setUsuario={setUsuario} />
+      <BotonCerrarSesion setUsuario={setUsuario} setServicio={setServicio} />
     </>
   );
 }
