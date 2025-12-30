@@ -1,33 +1,37 @@
-* {
-  box-sizing: border-box;
-  padding: 0px;
-  border: none;
-  margin: 0px;
-}
-
+@import "tailwindcss";
 
 :root {
-  font-family: system-ui, 'Roboto', Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: white;
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --base-100: white;
+  --contrast-100: #555555;
+  --gray: #6a7282;
+  --primary: #4682b4;
+  --danger: red;
 }
 
-body {
-  min-height: 100vh;
-}
-
-@media (prefers-color-scheme: light) {
+@media (prefers-color-scheme: dark) {
   :root {
-    color: #213547;
-    background-color: white;
+    --base-100: #242424;
+    --contrast-100: white;
+  }
+}
+
+@theme {
+  --color-*: initial;
+  --color-base-100: var(--base-100);
+  --color-contrast-100: var(--contrast-100);
+  --color-gray: var(--gray);
+  --color-primary: var(--primary);
+  --color-danger: var(--danger);
+  --color-white: white;
+}
+
+@layer base {
+  body {
+    @apply antialiased font-sans leading-1.5 font-normal;
+    @apply bg-base-100 text-contrast-100;
+  }
+
+  #root {
+    @apply min-h-screen;
   }
 }
