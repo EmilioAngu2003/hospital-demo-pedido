@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import HomeView from "./views/HomeView";
+import Login from "./components/Login";
 
 const MY_API_KEY = import.meta.env.VITE_MY_API_KEY;
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -121,7 +122,9 @@ const UpgradeRoot = () => {
       );
     if (currentPath === "/all") return <h1>All</h1>;
 
-    if (!isAuthenticated) return <h1>Login</h1>;
+    if (!isAuthenticated) {
+      return <Login onLogin={setIsAuthenticated} />;
+    }
 
     if (currentPath.startsWith("/order/edit/")) {
       const orderId = currentPath.split("/")[3];
@@ -160,7 +163,7 @@ const UpgradeRoot = () => {
     }
   };
 
-  return <main className="p-8 max-w-5xl mx-auto">{renderContent()}</main>;
+  return <main>{renderContent()}</main>;
 };
 
 export default UpgradeRoot;
