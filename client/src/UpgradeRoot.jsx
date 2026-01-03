@@ -1,15 +1,25 @@
 import { useEffect, useState } from "react";
-import Tabs from "./components/Tabs";
-import Button from "./components/Button";
+import HomeView from "./views/HomeView";
 
 const MY_API_KEY = import.meta.env.VITE_MY_API_KEY;
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const UpgradeRoot = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
   const [templates, setTemplates] = useState([]);
   const [statuses, setStatuses] = useState([]);
   const [shifts, setShifts] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const handleLocationChange = () => {
+      setCurrentPath(window.location.pathname);
+    };
+
+    window.addEventListener("popstate", handleLocationChange);
+    return () => window.removeEventListener("popstate", handleLocationChange);
+  }, []);
 
   useEffect(() => {
     const fetchTemplates = async () => {
@@ -67,7 +77,14 @@ const UpgradeRoot = () => {
     fetchStatuses();
   }, []);
 
-  if (loading)
+  const navigateTo = (path) => {
+    console.log("🚀 Navegando a:", path);
+    setCurrentPath(path);
+    window.history.pushState({}, "", path);
+    window.scrollTo(0, 0);
+  };
+
+  if (loading) {
     return (
       <div className="h-screen w-screen flex items-center justify-center">
         <div role="status">
@@ -91,22 +108,59 @@ const UpgradeRoot = () => {
         </div>
       </div>
     );
+  }
 
-  return (
-    <div className="p-8 max-w-5xl mx-auto">
-      <h1 className="text-5xl font-bold text-heading">Realizar Pedido</h1>
+  const renderContent = () => {
+    if (currentPath === "/")
+      return (
+        <HomeView
+          templates={templates}
+          shifts={shifts}
+          navigateTo={navigateTo}
+        />
+      );
+    if (currentPath === "/all") return <h1>All</h1>;
 
-      <div className="py-5 bg-neutral-primary antialiased">
-        <Button href="/all">Ver Pedidos</Button>
-      </div>
+    if (!isAuthenticated) return <h1>Login</h1>;
 
-      {loading ? (
-        <div>Cargando interfaz...</div>
-      ) : (
-        <Tabs templates={templates} shifts={shifts} />
-      )}
-    </div>
-  );
+    if (currentPath.startsWith("/order/edit/")) {
+      const orderId = currentPath.split("/")[3];
+      return <h1>Edit Order {orderId}</h1>;
+    }
+
+    if (currentPath.startsWith("/order/")) {
+      const orderId = currentPath.split("/")[2];
+      return <h1>Order {orderId}</h1>;
+    }
+
+    if (currentPath.startsWith("/history/")) {
+      const historyId = currentPath.split("/")[2];
+      return <h1>History {historyId}</h1>;
+    }
+
+    switch (currentPath) {
+      case "/admin":
+      case "/materials":
+      case "/services":
+      case "/templates":
+        return (
+          <>
+            {currentPath === "/admin" && <h1>Admin</h1>}
+            {currentPath === "/materials" && <h1>Materials</h1>}
+            {currentPath === "/services" && <h1>Services</h1>}
+            {currentPath === "/templates" && <h1>Templates</h1>}
+          </>
+        );
+      case "/orders":
+        return <h1>Orders</h1>;
+      case "/history":
+        return <h1>History</h1>;
+      default:
+        return <h1>404</h1>;
+    }
+  };
+
+  return <main className="p-8 max-w-5xl mx-auto">{renderContent()}</main>;
 };
 
 export default UpgradeRoot;
