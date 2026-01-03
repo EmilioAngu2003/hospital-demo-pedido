@@ -2,7 +2,13 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const Pedido = require("./models/Pedido");
-const OPCIONES_PEDIDO = require("./constants");
+const {
+  MATERIALS_BASE,
+  SERVICES_BASE,
+  TEMPLATES,
+  STATUSES_BASE,
+  SHIFTS_BASE,
+} = require("./constants");
 const dotenv = require("dotenv");
 
 dotenv.config({ path: ".env" });
@@ -125,6 +131,44 @@ app.delete("/api/pedidos/:id", apiKeyAuth, adminAuth, async (req, res) => {
     res.json({ mensaje: "Pedido eliminado con éxito" });
   } catch (error) {
     res.status(500).json({ error: "No se pudo eliminar el pedido" });
+  }
+});
+
+app.get("/api/templates", apiKeyAuth, (req, res) => {
+  const data = TEMPLATES.map((template) => {
+    const servicio = SERVICES_BASE.find((s) => s.id === template.service_id);
+
+    return {
+      id: template.id,
+      service_id: template.service_id,
+      service: servicio.name,
+      materials: template.materials.map((rel) => {
+        const material = MATERIALS_BASE.find((m) => m.id === rel.material_id);
+        return {
+          id: rel.id,
+          material_id: rel.material_id,
+          material: material.name,
+          stock: rel.stock,
+        };
+      }),
+    };
+  });
+  res.json(data);
+});
+
+app.get("/api/statuses", apiKeyAuth, (req, res) => {
+  try {
+    res.json(STATUSES_BASE);
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener los estados" });
+  }
+});
+
+app.get("/api/shifts", apiKeyAuth, (req, res) => {
+  try {
+    res.json(SHIFTS_BASE);
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener los turnos" });
   }
 });
 
