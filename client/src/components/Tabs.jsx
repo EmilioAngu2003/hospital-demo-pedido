@@ -33,7 +33,7 @@ const Tabs = ({ templates, shifts }) => {
           }`}
         >
           <div>
-            <OrderForm template={t} shifts={shifts} />
+            <OrderForm template={t} service={t.service} shifts={shifts} />
           </div>
         </div>
       ))}

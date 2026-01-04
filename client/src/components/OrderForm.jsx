@@ -5,8 +5,37 @@ import Button from "./Button";
 const MY_API_KEY = import.meta.env.VITE_MY_API_KEY;
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-const OrderForm = ({ template, shifts }) => {
-  const [tableData, setTableData] = useState({});
+const OrderForm = ({ template, shifts, service }) => {
+  const [items, setItems] = useState(() =>
+    (template.items || []).map((item) => ({ ...item, quantity: 0 }))
+  );
+  const [others, setOthers] = useState([]);
+
+  const handleMaterialChange = (id, newQuantity) => {
+    console.log("🚀 Material cambiado:", id, newQuantity);
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, quantity: newQuantity } : item
+      )
+    );
+  };
+
+  const addOtherMaterial = () => {
+    setOthers((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), name: "", quantity: 1 },
+    ]);
+  };
+
+  const updateOtherMaterial = (id, field, value) => {
+    setOthers((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+    );
+  };
+
+  const removeOtherMaterial = (id) => {
+    setOthers((prev) => prev.filter((item) => item.id !== id));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -14,20 +43,42 @@ const OrderForm = ({ template, shifts }) => {
     const formData = new FormData(e.target);
     const formValues = Object.fromEntries(formData.entries());
 
-    const materials = template.materials
-      .map((m) => ({
-        material_id: m.material_id,
-        quantity: tableData[m.id] || "0",
-      }))
-      .filter((item) => item.quantity > 0);
+    const filteredItems = items
+      .filter((item) => item.quantity > 0)
+      .map(({ id, quantity }) => ({ id, quantity }));
+
+    const filteredOthers = others
+      .filter((item) => item.quantity > 0)
+      .map(({ name, quantity }) => ({ name, quantity }));
 
     const payload = {
+      template_id: template.id,
       service_id: template.service_id,
       shift_id: formValues.shift,
-      order: materials,
+      items: filteredItems,
+      others: filteredOthers,
     };
 
-    console.log("Datos para enviar:", payload);
+    console.log("🚀 Payload Final:", payload);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/order`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": MY_API_KEY,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        alert("¡Pedido enviado correctamente!");
+      } else {
+        alert("Error al enviar el pedido");
+      }
+    } catch (error) {
+      console.error("Error de red:", error);
+    }
   };
 
   return (
@@ -64,8 +115,15 @@ const OrderForm = ({ template, shifts }) => {
 
       <div className="mb-6">
         <MaterialTable
-          materials={template.materials}
-          onQuantitiesChange={(data) => setTableData(data)}
+          title={service}
+          items={items}
+          others={others}
+          onQuantitiesChange={handleMaterialChange}
+          onOthersChange={{
+            add: addOtherMaterial,
+            update: updateOtherMaterial,
+            remove: removeOtherMaterial,
+          }}
         />
       </div>
 

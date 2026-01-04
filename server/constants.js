@@ -55,7 +55,7 @@ const TEMPLATES = [
   {
     id: "temp-01",
     service_id: "serv-01",
-    materials: [
+    items: [
       { id: "rel-01", material_id: "mat-01", stock: null },
       { id: "rel-02", material_id: "mat-02", stock: 40 },
       { id: "rel-03", material_id: "mat-03", stock: 100 },
@@ -91,7 +91,7 @@ const TEMPLATES = [
   {
     id: "temp-02",
     service_id: "serv-02",
-    materials: [
+    items: [
       { id: "rel-01", material_id: "mat-01", stock: null },
       { id: "rel-02", material_id: "mat-02", stock: 40 },
       { id: "rel-03", material_id: "mat-03", stock: 100 },

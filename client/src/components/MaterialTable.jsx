@@ -1,159 +1,231 @@
-import { useState, useMemo } from "react";
+import { useTable } from "../hooks/useTable";
+import QuantityCounter from "./QuantityCounter";
 import Button from "./Button";
+import SortButton from "./SortButton";
+import OthersRow from "./OthersRow";
+import TablePagination from "./TablePagination";
 
-const MaterialTable = ({ materials, onQuantitiesChange }) => {
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
-  const [quantities, setQuantities] = useState({});
-  const [snapshotQuantities, setSnapshotQuantities] = useState({});
+const MaterialTable = ({
+  title,
+  items,
+  onQuantitiesChange,
+  others,
+  onOthersChange,
+}) => {
+  const { displayItems, search, sort, pagination } = useTable(items, {
+    searchKeys: ["material"],
+    rowsPerPage: 10,
+  });
 
-  const handleQuantityChange = (id, value) => {
-    const newQuantities = {
-      ...quantities,
-      [id]: value,
-    };
-    setQuantities(newQuantities);
-
-    if (onQuantitiesChange) {
-      onQuantitiesChange(newQuantities);
-    }
-  };
-
-  const requestSort = (key) => {
-    let direction = "asc";
-    if (sortConfig.key === key && sortConfig.direction === "asc") {
-      direction = "desc";
-    }
-    setSnapshotQuantities({ ...quantities });
-    setSortConfig({ key, direction });
-  };
-
-  const sortedItems = useMemo(() => {
-    let sortableItems = materials.map((m) => ({
-      ...m,
-      quantity: parseFloat(snapshotQuantities[m.id]) || 0,
-    }));
-
-    if (sortConfig.key !== null) {
-      sortableItems.sort((a, b) => {
-        const aValue = a[sortConfig.key];
-        const bValue = b[sortConfig.key];
-        if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
-        if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
-        return 0;
-      });
-    }
-    return sortableItems;
-  }, [materials, sortConfig, snapshotQuantities]);
-
-  const getIconColor = (key) =>
-    sortConfig.key === key ? "text-brand" : "text-body";
+  const othersTable = useTable(others, {
+    searchKeys: ["material"],
+    rowsPerPage: 100,
+  });
 
   return (
-    <div className="relative overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default">
-      <table className="w-full text-sm text-left rtl:text-right text-body">
-        <thead className="text-sm text-body bg-neutral-secondary-medium border-b border-default-medium">
-          <tr>
-            <th scope="col" className="px-6 py-3 font-medium">
-              <div className="flex items-center">
-                Material
-                <Button
-                  variant="ghost"
-                  type="button"
-                  onClick={() => requestSort("material")}
-                >
-                  <svg
-                    className={`w-4 h-4 ms-1 ${getIconColor("material")}`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="m8 15 4 4 4-4m0-6-4-4-4 4"
-                    />
-                  </svg>
-                </Button>
-              </div>
-            </th>
-            <th scope="col" className="px-6 py-3 font-medium">
-              <div className="flex items-center">
-                Stock
-                <Button
-                  variant="ghost"
-                  type="button"
-                  onClick={() => requestSort("stock")}
-                >
-                  <svg
-                    className={`w-4 h-4 ms-1 ${getIconColor("stock")}`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="m8 15 4 4 4-4m0-6-4-4-4 4"
-                    />
-                  </svg>
-                </Button>
-              </div>
-            </th>
-            <th scope="col" className="px-6 py-3 font-medium">
-              <div className="flex items-center">
-                Cantidad
-                <Button
-                  variant="ghost"
-                  type="button"
-                  onClick={() => requestSort("quantity")}
-                >
-                  <svg
-                    className={`w-4 h-4 ms-1 ${getIconColor("quantity")}`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="m8 15 4 4 4-4m0-6-4-4-4 4"
-                    />
-                  </svg>
-                </Button>
-              </div>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {sortedItems.map((item) => (
-            <tr
-              key={item.id}
-              className="bg-neutral-primary-soft border-b border-default"
-            >
-              <td className="px-6 py-4 font-medium text-heading whitespace-nowrap">
-                {item.material}
-              </td>
-              <td className="px-6 py-4">{item.stock}</td>
-              <td className="px-6 py-4">
-                <input
-                  type="number"
-                  min="0"
-                  className="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body"
-                  value={quantities[item.id] || ""}
-                  onChange={(e) =>
-                    handleQuantityChange(item.id, e.target.value)
-                  }
-                  placeholder="0"
+    <>
+      <div className="relative overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-t-base border border-default">
+        <table className="w-full text-sm text-left rtl:text-right text-body">
+          <thead className="text-sm text-body bg-neutral-secondary-medium border-b border-default-medium">
+            <tr>
+              <th
+                colSpan={3}
+                className="px-6 py-4 border-b-neutral-quaternary border-b"
+              >
+                <div className="flex items-center justify-center">
+                  <h3 className="text-heading">{title}</h3>
+                </div>
+              </th>
+            </tr>
+            <tr>
+              <th colSpan={3}>
+                <div className="flex flex-col items-center justify-between p-4 space-y-3 md:flex-row md:space-y-0 md:space-x-4">
+                  <div className="w-full md:w-1/2">
+                    <label htmlFor="simple-search" className="sr-only">
+                      Buscar Material
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                        <svg
+                          className="w-4 h-4 text-body"
+                          aria-hidden="true"
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeWidth="2"
+                            d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"
+                          />
+                        </svg>
+                      </div>
+                      <input
+                        type="text"
+                        id="simple-search"
+                        onChange={(e) => {
+                          search.setQuery(e.target.value);
+                          pagination.change(1);
+                        }}
+                        className="block w-full max-w-96 ps-9 pe-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body"
+                        placeholder="Buscar material..."
+                      />
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-stretch justify-end shrink-0 w-full space-y-2 md:w-auto md:flex-row md:space-y-0 md:items-center md:space-x-3">
+                    <Button
+                      variant="secondary"
+                      size="S"
+                      onClick={sort.reset}
+                      type="button"
+                    >
+                      Quitar Orden
+                    </Button>
+                  </div>
+                </div>
+              </th>
+            </tr>
+            <tr>
+              <th className="px-6 py-3 w-1/2">
+                <SortButton
+                  label="Material"
+                  sortKey="material"
+                  config={sort.config}
+                  onSort={sort.handleSort}
+                />
+              </th>
+              <th className="px-6 py-3 w-1/4">
+                <SortButton
+                  label="Stock"
+                  sortKey="stock"
+                  config={sort.config}
+                  onSort={sort.handleSort}
+                />
+              </th>
+              <th className="px-6 py-3 w-1/4">
+                <SortButton
+                  label="Cantidad"
+                  sortKey="quantity"
+                  config={sort.config}
+                  onSort={sort.handleSort}
+                />
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {displayItems.map((item) => (
+              <tr
+                key={item.id}
+                className="bg-neutral-primary-soft border-b border-default"
+              >
+                <td className="px-6 py-4 font-medium text-heading whitespace-nowrap">
+                  {item.material}
+                </td>
+                <td className="px-6 py-4">{item.stock}</td>
+                <td className="px-6 py-4">
+                  <QuantityCounter
+                    value={item.quantity || ""}
+                    min={0}
+                    step={1}
+                    placeholder="0"
+                    onChange={(val) => onQuantitiesChange(item.id, val)}
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colSpan="3">
+                <TablePagination
+                  currentPage={pagination.current}
+                  pages={pagination.pages}
+                  records={pagination.records}
+                  start={pagination.start}
+                  end={pagination.end}
+                  onPageChange={pagination.change}
                 />
               </td>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </tfoot>
+        </table>
+      </div>
+      <div className="relative overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-b-base border border-default">
+        <table className="w-full text-sm text-left rtl:text-right text-body">
+          <thead className="text-sm text-body bg-neutral-secondary-medium border-b border-default-medium">
+            <tr>
+              <th colSpan="3">
+                <div className="flex flex-col items-center justify-between p-4 space-y-3 md:flex-row md:space-y-0 md:space-x-4">
+                  <div className="w-full md:w-1/2">
+                    <h3 className="text-heading">Otros Materiales</h3>
+                  </div>
+                  <div className="flex flex-col items-stretch justify-end shrink-0 w-full space-y-2 md:w-auto md:flex-row md:space-y-0 md:items-center md:space-x-3">
+                    <Button
+                      onClick={() => onOthersChange.add()}
+                      variant="primary"
+                      size="S"
+                      type="button"
+                    >
+                      Añadir Material
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="S"
+                      onClick={othersTable.sort.reset}
+                      type="button"
+                    >
+                      Quitar Orden
+                    </Button>
+                  </div>
+                </div>
+              </th>
+            </tr>
+            <tr>
+              <th className="px-6 py-3 w-1/2">
+                <SortButton
+                  label="Material"
+                  sortKey="name"
+                  config={othersTable.sort.config}
+                  onSort={othersTable.sort.handleSort}
+                />
+              </th>
+              <th className="px-6 py-3 w-1/4">
+                <SortButton
+                  label="Cantidad"
+                  sortKey="quantity"
+                  config={othersTable.sort.config}
+                  onSort={othersTable.sort.handleSort}
+                />
+              </th>
+              <th className="px-6 py-3 w-1/4">
+                <div className="flex items-center">Acciones</div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {othersTable.displayItems.length === 0 ? (
+              <tr>
+                <td colSpan="3" className="px-6 py-4 text-center text-heading">
+                  No hay otros materiales
+                </td>
+              </tr>
+            ) : (
+              othersTable.displayItems.map((item) => (
+                <OthersRow
+                  key={item.id}
+                  item={item}
+                  onUpdate={onOthersChange.update}
+                  onRemove={onOthersChange.remove}
+                />
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 };
 

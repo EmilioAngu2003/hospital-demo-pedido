@@ -142,13 +142,13 @@ app.get("/api/templates", apiKeyAuth, (req, res) => {
       id: template.id,
       service_id: template.service_id,
       service: servicio.name,
-      materials: template.materials.map((rel) => {
-        const material = MATERIALS_BASE.find((m) => m.id === rel.material_id);
+      items: template.items.map((item) => {
+        const material = MATERIALS_BASE.find((m) => m.id === item.material_id);
         return {
-          id: rel.id,
-          material_id: rel.material_id,
+          id: item.id,
+          material_id: item.material_id,
           material: material.name,
-          stock: rel.stock,
+          stock: item.stock,
         };
       }),
     };
@@ -170,6 +170,28 @@ app.get("/api/shifts", apiKeyAuth, (req, res) => {
   } catch (error) {
     res.status(500).json({ error: "Error al obtener los turnos" });
   }
+});
+
+app.post("/api/order", apiKeyAuth, (req, res) => {
+  console.log("🚀 Payload recibido:", req.body);
+
+  const { template_id, service_id, shift_id, items, others } = req.body;
+
+  if (!template_id || !service_id || !shift_id || !items || !others) {
+    return res.status(400).json({ error: "Datos del pedido incompletos" });
+  }
+
+  const newOrder = {
+    service_id,
+    shift_id,
+  };
+
+  console.log("✅ Nuevo pedido registrado:", newOrder);
+
+  res.status(201).json({
+    message: "Pedido registrado con éxito",
+    order: newOrder,
+  });
 });
 
 app.listen(port, () => {
