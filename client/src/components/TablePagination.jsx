@@ -21,7 +21,11 @@ const TablePagination = ({
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
             type="button"
-            className="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium rounded-s-base text-sm px-3 h-9 focus:outline-none"
+            className={`flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium font-medium rounded-s-base text-sm px-3 h-9 focus:outline-none ${
+              currentPage === 1
+                ? "opacity-50"
+                : "cursor-pointer hover:bg-neutral-tertiary-medium hover:text-heading"
+            }`}
           >
             Anterior
           </button>
@@ -31,10 +35,11 @@ const TablePagination = ({
             <button
               type="button"
               onClick={() => onPageChange(i + 1)}
+              disabled={currentPage === i + 1}
               className={`flex items-center justify-center w-9 h-9 border border-default-medium ${
                 currentPage === i + 1
                   ? "bg-brand-softer text-fg-brand font-medium text-sm w-9 h-9 focus:outline-none"
-                  : "bg-neutral-secondary-medium text-body hover:bg-neutral-tertiary-medium box-border border border-default-medium hover:text-heading font-medium"
+                  : "cursor-pointer bg-neutral-secondary-medium text-body hover:bg-neutral-tertiary-medium box-border border border-default-medium hover:text-heading font-medium"
               }`}
             >
               {i + 1}
@@ -45,8 +50,12 @@ const TablePagination = ({
           <button
             type="button"
             onClick={() => onPageChange(currentPage + 1)}
-            disabled={currentPage === pages}
-            className="flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading font-medium rounded-e-base text-sm px-3 h-9 focus:outline-none"
+            disabled={currentPage === pages || pages === 0}
+            className={`flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium font-medium rounded-e-base text-sm px-3 h-9 focus:outline-none ${
+              currentPage === pages || pages === 0
+                ? "opacity-50"
+                : "cursor-pointer hover:bg-neutral-tertiary-medium hover:text-heading"
+            }`}
           >
             Siguiente
           </button>
