@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const Pedido = require("./models/Pedido");
+const Order = require("./models/Order");
 const {
   MATERIALS_BASE,
   SERVICES_BASE,
@@ -172,26 +173,66 @@ app.get("/api/shifts", apiKeyAuth, (req, res) => {
   }
 });
 
-app.post("/api/order", apiKeyAuth, (req, res) => {
+app.post("/api/order", apiKeyAuth, async (req, res) => {
   console.log("🚀 Payload recibido:", req.body);
 
-  const { template_id, service_id, shift_id, items, others } = req.body;
+  try {
+    const { template_id, service_id, shift_id, items, others } = req.body;
 
-  if (!template_id || !service_id || !shift_id || !items || !others) {
-    return res.status(400).json({ error: "Datos del pedido incompletos" });
+    if (items.length === 0 && others.length === 0) {
+      return res
+        .status(400)
+        .json({ error: "No puede enviar un pedido sin materiales" });
+    }
+
+    const hasInvalidQuantity = others.some((i) => i.quantity <= 0);
+    if (hasInvalidQuantity) {
+      return res.status(400).json({
+        error: "Los otros materiales deben tener una cantidad mayor a 0",
+      });
+    }
+
+    const template = TEMPLATES.find((t) => t.id === template_id);
+    const service = SERVICES_BASE.find((s) => s.id === service_id);
+    const shift = SHIFTS_BASE.find((s) => s.id === shift_id);
+
+    if (!template || !service || !shift) {
+      return res.status(400).json({ error: "Referencias no encontradas" });
+    }
+
+    const namedItems = template.items.map((t_item) => {
+      const material = MATERIALS_BASE.find((m) => m.id === t_item.material_id);
+      const exist = items.find((i) => i.id === t_item.id);
+      const quantity = exist ? exist.quantity : 0;
+      return {
+        name: material.name,
+        quantity: quantity < 0 ? 0 : quantity,
+      };
+    });
+
+    const initialStatus = STATUSES_BASE.find((s) => s.id === "stat-01");
+
+    const newOrder = new Order({
+      template_id,
+      service_name: service.name,
+      shift_name: shift.name,
+      items: namedItems,
+      others: others || [],
+      status: initialStatus.name,
+    });
+
+    const orderSaved = await newOrder.save();
+
+    console.log("✅ Nuevo pedido guardado en DB:", orderSaved);
+
+    res.status(201).json({
+      message: "Pedido registrado con éxito",
+      order: orderSaved,
+    });
+  } catch (error) {
+    console.error("🔴 Error al guardar el pedido:", error);
+    res.status(500).json({ error: "Error interno al procesar el pedido" });
   }
-
-  const newOrder = {
-    service_id,
-    shift_id,
-  };
-
-  console.log("✅ Nuevo pedido registrado:", newOrder);
-
-  res.status(201).json({
-    message: "Pedido registrado con éxito",
-    order: newOrder,
-  });
 });
 
 app.listen(port, () => {
