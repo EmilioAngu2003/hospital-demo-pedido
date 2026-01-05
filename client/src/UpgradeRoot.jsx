@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import HomeView from "./views/HomeView";
+import AllView from "./views/AllView";
+import OrderView from "./views/OrderView";
 import Login from "./components/Login";
 
 const MY_API_KEY = import.meta.env.VITE_MY_API_KEY;
@@ -138,7 +140,21 @@ const UpgradeRoot = () => {
           navigateTo={navigateTo}
         />
       );
-    if (currentPath === "/all") return <h1>All</h1>;
+    if (currentPath === "/all")
+      return (
+        <AllView
+          templates={templates}
+          shifts={shifts}
+          statuses={statuses}
+          services={services}
+          navigateTo={navigateTo}
+        />
+      );
+
+    if (currentPath.startsWith("/order/") && !currentPath.includes("/edit/")) {
+      const orderId = currentPath.split("/")[2];
+      return <OrderView id={orderId} navigateTo={navigateTo} />;
+    }
 
     if (!isAuthenticated) {
       return <Login onLogin={setIsAuthenticated} />;
@@ -147,11 +163,6 @@ const UpgradeRoot = () => {
     if (currentPath.startsWith("/order/edit/")) {
       const orderId = currentPath.split("/")[3];
       return <h1>Edit Order {orderId}</h1>;
-    }
-
-    if (currentPath.startsWith("/order/")) {
-      const orderId = currentPath.split("/")[2];
-      return <h1>Order {orderId}</h1>;
     }
 
     if (currentPath.startsWith("/history/")) {

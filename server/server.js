@@ -248,6 +248,101 @@ app.post("/api/order", apiKeyAuth, async (req, res) => {
   }
 });
 
+app.post("/api/orders", apiKeyAuth, async (req, res) => {
+  try {
+    const {
+      templates_id,
+      services_id,
+      shifts_id,
+      statuses_id,
+      search,
+      key = "date",
+      direction = "desc",
+      date_start,
+      date_end,
+      step = 10,
+      page = 1,
+    } = req.body;
+
+    let query = {};
+
+    if (templates_id && templates_id.length > 0)
+      query.template_id = { $in: templates_id };
+    if (services_id && services_id.length > 0)
+      query.service_id = { $in: services_id };
+    if (shifts_id && shifts_id.length > 0) query.shift_id = { $in: shifts_id };
+    if (statuses_id && statuses_id.length > 0)
+      query["status.id"] = { $in: statuses_id };
+
+    if (search) {
+      const searchRegex = new RegExp(search, "i");
+      query.$or = [
+        { "items.name": searchRegex },
+        { "others.name": searchRegex },
+      ];
+    }
+
+    if (date_start || date_end) {
+      query.date = {};
+      if (date_start) query.date.$gte = new Date(date_start);
+      if (date_end) {
+        const end = new Date(date_end);
+        end.setHours(23, 59, 59, 999);
+        query.date.$lte = end;
+      }
+    }
+
+    const skip = (page - 1) * step;
+    const sortDirection = direction === "desc" ? -1 : 1;
+
+    const [orders, totalRecords] = await Promise.all([
+      Order.find(query)
+        .sort({ [key]: sortDirection })
+        .skip(skip)
+        .limit(step),
+      Order.countDocuments(query),
+    ]);
+
+    const totalPages = Math.ceil(totalRecords / step);
+
+    res.status(201).json({
+      message: "Solicitudes obtenidas con éxito",
+      orders,
+      start: totalRecords > 0 ? skip + 1 : 0,
+      end: skip + orders.length,
+      pages: totalPages,
+      records: totalRecords,
+      config: {
+        key,
+        direction,
+      },
+    });
+  } catch (error) {
+    console.error("🔴 Error al consultar pedidos:", error);
+    res.status(500).json({ error: "Error interno al obtener los pedidos" });
+  }
+});
+
+app.get("/api/order/:id", apiKeyAuth, async (req, res) => {
+  const { id } = req.params;
+
+  console.log("🚀 Pedido solicitado:", id);
+
+  try {
+    const order = await Order.findById(id).populate("status");
+
+    console.log("🚀 Pedido encontrado:", order);
+
+    if (!order) {
+      return res.status(404).json({ error: "Pedido no encontrado" });
+    }
+    res.status(200).json(order);
+  } catch (error) {
+    console.error("🔴 Error al consultar pedido:", error);
+    res.status(500).json({ error: "Error interno al obtener el pedido" });
+  }
+});
+
 app.listen(port, () => {
   console.log(`🚀 Servidor Express escuchando en http://localhost:${port}`);
 });
