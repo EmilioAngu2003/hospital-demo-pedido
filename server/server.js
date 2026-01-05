@@ -185,7 +185,8 @@ app.post("/api/order", apiKeyAuth, async (req, res) => {
   console.log("🚀 Payload recibido:", req.body);
 
   try {
-    const { template_id, service_id, shift_id, items, others } = req.body;
+    const { template_id, service_id, shift_id, items, others, comment } =
+      req.body;
 
     if (items.length === 0 && others.length === 0) {
       return res
@@ -229,7 +230,8 @@ app.post("/api/order", apiKeyAuth, async (req, res) => {
       shift_name: shift.name,
       items: namedItems,
       others: others || [],
-      status: initialStatus.name,
+      status: initialStatus,
+      comment: comment || "",
     });
 
     const orderSaved = await newOrder.save();

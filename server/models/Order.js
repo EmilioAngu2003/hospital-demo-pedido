@@ -18,7 +18,11 @@ const OrderSchema = new mongoose.Schema({
   items: [ItemSchema],
   others: [ItemSchema],
   date: { type: Date, default: Date.now },
-  status: { type: String, default: "Pendiente" },
+  status: {
+    id: { type: String, required: true },
+    name: { type: String, required: true },
+  },
+  comment: String,
 });
 
 module.exports = mongoose.model("Order", OrderSchema);
