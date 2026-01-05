@@ -98,7 +98,7 @@ const OrderView = ({ id, navigateTo }) => {
               <span className="text-heading font-medium">{item.label}</span>
               <span className="text-body font-semibold">{item.value}</span>
             </div>
-            <hr class="h-px my-2 bg-neutral-quaternary border-0"></hr>
+            <hr className="h-px my-2 bg-neutral-quaternary border-0"></hr>
           </div>
         ))}
         <div className="py-2">
