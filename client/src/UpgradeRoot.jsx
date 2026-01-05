@@ -11,6 +11,7 @@ const UpgradeRoot = () => {
   const [templates, setTemplates] = useState([]);
   const [statuses, setStatuses] = useState([]);
   const [shifts, setShifts] = useState([]);
+  const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -73,9 +74,26 @@ const UpgradeRoot = () => {
       }
     };
 
+    const fetchServices = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/services`, {
+          headers: {
+            "x-api-key": MY_API_KEY,
+          },
+        });
+        const data = await response.json();
+
+        console.log("🚀 Servicios cargados desde el servidor:", data);
+        setServices(data);
+      } catch (error) {
+        console.error("❌ Error al cargar los servicios:", error);
+      }
+    };
+
     fetchShifts();
     fetchTemplates();
     fetchStatuses();
+    fetchServices();
   }, []);
 
   const navigateTo = (path) => {

@@ -173,6 +173,14 @@ app.get("/api/shifts", apiKeyAuth, (req, res) => {
   }
 });
 
+app.get("/api/services", apiKeyAuth, (req, res) => {
+  try {
+    res.json(SERVICES_BASE);
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener los turnos" });
+  }
+});
+
 app.post("/api/order", apiKeyAuth, async (req, res) => {
   console.log("🚀 Payload recibido:", req.body);
 
