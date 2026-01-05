@@ -214,7 +214,10 @@ app.post("/api/order", apiKeyAuth, async (req, res) => {
 
     const newOrder = new Order({
       template_id,
+      template_name: template.name,
+      service_id,
       service_name: service.name,
+      shift_id,
       shift_name: shift.name,
       items: namedItems,
       others: others || [],
