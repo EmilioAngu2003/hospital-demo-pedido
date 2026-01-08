@@ -33,7 +33,7 @@ const Button = ({
     XL: "font-medium rounded-base text-base px-6 py-3.5 focus:outline-none",
   };
 
-  const baseStyles = "cursor-pointer";
+  const baseStyles = "cursor-pointer focus:ring-4";
 
   const combinedClasses = `${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`;
 
