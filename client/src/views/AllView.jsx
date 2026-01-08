@@ -1,19 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useGetOrders } from "../hooks/useGetOrders";
+import Container from "../components/Container";
 import Button from "../components/Button";
 import TableLayout from "../components/TableLayout";
 import SortButton from "../components/SortButton";
-import MultiSelect from "../components/MultiSelect";
+import TagSelect from "../components/TagSelect";
 import DateRangePicker from "../components/DateRangePicker";
 import TablePagination from "../components/TablePagination";
 import Popever from "../components/Popever";
 import Status from "../components/Status";
 import DropdownMenu from "../components/DropdownMenu";
 import SearchInput from "../components/SearchInput";
+import LoadingIcon from "../components/LoadingIcon";
 
-const MY_API_KEY = import.meta.env.VITE_MY_API_KEY;
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-const AllView = ({ shifts, statuses, services, navigateTo }) => {
+const AllView = ({ shifts, statuses, services }) => {
+  const navigate = useNavigate();
   const getToday = () => new Date().toISOString().split("T")[0];
 
   const [filters, setFilters] = useState({
@@ -29,37 +31,7 @@ const AllView = ({ shifts, statuses, services, navigateTo }) => {
     direction: "desc",
   });
 
-  const [data, setData] = useState({
-    orders: [],
-    records: 0,
-    pages: 0,
-    start: 0,
-    end: 0,
-    config: { key: "date", direction: "desc" },
-  });
-
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        console.log("🚀 Filtros aplicados:", filters);
-
-        const response = await fetch(`${API_BASE_URL}/api/orders`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": MY_API_KEY,
-          },
-          body: JSON.stringify(filters),
-        });
-        const result = await response.json();
-        console.log("🚀 Pedidos obtenidos:", result);
-        setData(result);
-      } catch (error) {
-        console.error("Error al obtener pedidos:", error);
-      }
-    };
-    fetchOrders();
-  }, [filters]);
+  const { data, loading, error } = useGetOrders(filters);
 
   const handleSort = (newKey) => {
     const isSameKey = filters.key === newKey;
@@ -85,17 +57,63 @@ const AllView = ({ shifts, statuses, services, navigateTo }) => {
     }));
   };
 
+  const handleSearch = (query) => {
+    setFilters((prev) => ({ ...prev, search: query, page: 1 }));
+  };
+
+  const clearKey = () => {
+    setFilters((prev) => ({ ...prev, key: null }));
+  };
+
+  const tagSelect = [
+    {
+      label: "Servicios",
+      options: services.map((s) => ({
+        label: s.name,
+        value: s.id,
+      })),
+      placeholder: "Selecciona un servicio",
+      onChange: (ids) => handleFilterChange("services_id", ids),
+    },
+    {
+      label: "Turnos",
+      options: shifts.map((s) => ({
+        label: s.name,
+        value: s.id,
+      })),
+      placeholder: "Selecciona un turno",
+      onChange: (ids) => handleFilterChange("shifts_id", ids),
+    },
+    {
+      label: "Estados",
+      options: statuses.map((s) => ({
+        label: s.name,
+        value: s.id,
+      })),
+      placeholder: "Selecciona un estado",
+      onChange: (ids) => handleFilterChange("statuses_id", ids),
+    },
+  ];
+
+  const headers = [
+    { label: "ID", key: "id" },
+    { label: "Servicio", key: "service_name" },
+    { label: "Turno", key: "shift_name" },
+    { label: "Fecha", key: "date" },
+    { label: "Estado", key: "status" },
+  ];
+
   return (
-    <div className="max-w-5xl mx-auto p-8">
-      <h1 className="text-5xl font-bold text-heading">Todos los Pedido</h1>
+    <Container>
+      <h1 className="text-5xl font-bold text-heading">Todos los Pedidos</h1>
 
       <div className="py-5 bg-neutral-primary antialiased">
-        <Button onClick={() => navigateTo("/")}>Hacer Pedidos</Button>
+        <Button onClick={() => navigate("/")}>Hacer Pedidos</Button>
       </div>
       <TableLayout
         colSpan={7}
         actions={
-          <div className="w-full">
+          <div className="flex flex-col gap-3 w-full">
             <div>
               <DateRangePicker
                 onChange={handleDateChange}
@@ -103,87 +121,60 @@ const AllView = ({ shifts, statuses, services, navigateTo }) => {
                 initialEnd={filters.date_end}
               />
             </div>
-            <div className="grid grid-cols-3 w-full gap-4 py-3">
-              <MultiSelect
-                label="Servicios"
-                options={services.map((service) => ({
-                  label: service.name,
-                  value: service.id,
-                }))}
-                placeholder="Selecciona un servicio"
-                onChange={(ids) => handleFilterChange("services_id", ids)}
-              />
-              <MultiSelect
-                label="Turnos"
-                options={shifts.map((shift) => ({
-                  label: shift.name,
-                  value: shift.id,
-                }))}
-                placeholder="Selecciona un turno"
-                onChange={(ids) => handleFilterChange("shifts_id", ids)}
-              />
-              <MultiSelect
-                label="Estados"
-                options={statuses.map((status) => ({
-                  label: status.name,
-                  value: status.id,
-                }))}
-                placeholder="Seleccionar un estado"
-                onChange={(ids) => handleFilterChange("statuses_id", ids)}
-              />
+            <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4  w-full gap-x-4 gap-y-3">
+              {tagSelect.map((ts, i) => (
+                <TagSelect
+                  key={i}
+                  label={ts.label}
+                  options={ts.options}
+                  placeholder={ts.placeholder}
+                  onChange={ts.onChange}
+                />
+              ))}
             </div>
-            <div className="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 pt-3">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-y-3">
               <div className="w-full md:w-1/2">
-                <SearchInput placeholder={"Buscar por un material"} />
+                <SearchInput
+                  label="Buscar por un material"
+                  value={filters.search}
+                  placeholder={"Buscar por un material"}
+                  onChange={(e) => handleSearch(e.target.value)}
+                />
               </div>
-              <Button variant="secondary" size="S" type="button">
-                Quitar Orden
-              </Button>
+              {error && (
+                <Status text="Hubo un error filtrando" variant="danger" />
+              )}
+              {loading && (
+                <div className="animate-pulse">
+                  <Status text="Cargando pedidos" variant="gray" />
+                  {/* <LoadingIcon variant="quaternary" /> */}
+                </div>
+              )}
+              <div className="flex flex-col items-stretch justify-between w-full md:w-auto">
+                <Button
+                  variant="secondary"
+                  size="S"
+                  type="button"
+                  onClick={clearKey}
+                >
+                  Quitar Orden
+                </Button>
+              </div>
             </div>
           </div>
         }
         headers={
           <>
-            <th className="px-6 py-3">
-              <SortButton
-                label="ID"
-                sortKey="id"
-                config={data.config}
-                onSort={handleSort}
-              />
-            </th>
-            <th className="px-6 py-3">
-              <SortButton
-                label="Servicio"
-                sortKey="service_name"
-                config={data.config}
-                onSort={handleSort}
-              />
-            </th>
-            <th className="px-6 py-3">
-              <SortButton
-                label="Turno"
-                sortKey="shift_name"
-                config={data.config}
-                onSort={handleSort}
-              />
-            </th>
-            <th className="px-6 py-3">
-              <SortButton
-                label="Fecha"
-                sortKey="date"
-                config={data.config}
-                onSort={handleSort}
-              />
-            </th>
-            <th className="px-6 py-3">
-              <SortButton
-                label="Estado"
-                sortKey="status"
-                config={data.config}
-                onSort={handleSort}
-              />
-            </th>
+            {headers.map((h, i) => (
+              <th className="px-6 py-3" key={i}>
+                <SortButton
+                  label={h.label}
+                  isSelected={data.config.key === h.key}
+                  onSort={() => handleSort(h.key)}
+                  direction={data.config.direction}
+                />
+              </th>
+            ))}
             <th className="px-6 py-3">Observacion</th>
             <th className="px-6 py-3">Acciones</th>
           </>
@@ -201,7 +192,7 @@ const AllView = ({ shifts, statuses, services, navigateTo }) => {
           />
         }
       >
-        {data.orders.length > 0 ? (
+        {data.orders?.length > 0 ? (
           data.orders.map((order) => (
             <tr key={order._id} className="border-b border-default">
               <td className="px-6 py-4">
@@ -227,7 +218,7 @@ const AllView = ({ shifts, statuses, services, navigateTo }) => {
                   options={[
                     {
                       label: "Ver",
-                      onClick: () => navigateTo(`/order/${order._id}`),
+                      href: `/order/${order._id}`,
                     },
                   ]}
                 />
@@ -242,7 +233,7 @@ const AllView = ({ shifts, statuses, services, navigateTo }) => {
           </tr>
         )}
       </TableLayout>
-    </div>
+    </Container>
   );
 };
 

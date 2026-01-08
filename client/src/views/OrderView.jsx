@@ -1,66 +1,50 @@
-import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useTable } from "../hooks/useTable";
-import TableLayout from "../components/TableLayout";
-import TablePagination from "../components/TablePagination";
-import SearchInput from "../components/SearchInput";
+import { useGetOrder } from "../hooks/useGetOrder";
+import Container from "../components/Container";
 import SortButton from "../components/SortButton";
 import Button from "../components/Button";
-import Status from "../components/Status";
+import LoadingView from "./LoadingView";
+import ErrorView from "./ErrorView";
+import DataTable from "../components/DataTable";
 
-const MY_API_KEY = import.meta.env.VITE_MY_API_KEY;
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const OrderView = () => {
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const { order, loading, error } = useGetOrder(id);
 
-const OrderView = ({ id, navigateTo }) => {
-  const [order, setOrder] = useState({
-    id: "",
-    status: { id: null, name: "" },
-    template_id: "",
-    service_id: "",
-    service_name: "",
-    shift_id: "",
-    shift_name: "",
-    items: [],
-    others: [],
-    comment: "",
-    date: "",
-  });
-  const { displayItems, search, sort, pagination } = useTable(order.items, {
+  const itemsTable = useTable(order?.items, {
+    initialSortKey: "quantity",
+    initialSortDirection: "desc",
     searchKeys: ["name"],
     rowsPerPage: 10,
   });
 
-  const othersTable = useTable(order.others, {
-    searchKeys: ["name"],
+  const othersTable = useTable(order?.others, {
     rowsPerPage: 100,
   });
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/order/${id}`, {
-          headers: {
-            "x-api-key": MY_API_KEY,
-          },
-        });
-        const data = await response.json();
 
-        data.items = data.items.map((item) => ({
-          ...item,
-          id: crypto.randomUUID(),
-        }));
-        data.others = data.others.map((item) => ({
-          ...item,
-          id: crypto.randomUUID(),
-        }));
-        console.log("🚀 Pedido cargado desde el servidor:", data);
-        setOrder(data);
-      } catch (error) {
-        console.error("❌ Error al cargar pedido:", error);
-      }
-    };
+  if (loading) return <LoadingView />;
+  if (error)
+    return (
+      <ErrorView
+        title="Error al cargar el pedido"
+        message={error}
+        buttonText="Volver"
+        onClick={() => navigate("/all")}
+      />
+    );
 
-    fetchOrders();
-  }, [id]);
+  if (!order) return null;
 
+  const itemsHeaders = [
+    { name: "Material", key: "name" },
+    { name: "Cantidad", key: "quantity" },
+  ];
+  const othersHeaders = [
+    { name: "Material", key: "name" },
+    { name: "Cantidad", key: "quantity" },
+  ];
   const info = [
     { label: "Servicio", value: order.service_name },
     { label: "Turno", value: order.shift_name },
@@ -86,10 +70,10 @@ const OrderView = ({ id, navigateTo }) => {
   ];
 
   return (
-    <div className="max-w-5xl mx-auto p-8">
+    <Container>
       <h1 className="text-5xl font-bold text-heading">{order.service_name} </h1>
       <div className="py-5 bg-neutral-primary antialiased">
-        <Button onClick={() => navigateTo("/all")}>Volver</Button>
+        <Button onClick={() => navigate("/all")}>Volver</Button>
       </div>
       <div className="py-5 text-base">
         {info.map((item, index) => (
@@ -106,62 +90,26 @@ const OrderView = ({ id, navigateTo }) => {
           <p className="text-body">{order.comment || "No hay observacion"}</p>
         </div>
       </div>
-      <TableLayout
-        title={order.service_name}
+      <DataTable
+        title="Materiales Principales"
+        items={order.items}
+        table={itemsTable}
         rounded="top"
-        actions={
+        headers={({ sort, key, direction }) => (
           <>
-            <div className="w-full md:w-1/2">
-              <SearchInput
-                onChange={(val) => {
-                  search.setQuery(val);
-                  pagination.change(1);
-                }}
-                placeholder={"Buscar un Material"}
-              />
-            </div>
-            <Button
-              variant="secondary"
-              size="S"
-              onClick={sort.reset}
-              type="button"
-            >
-              Quitar Orden
-            </Button>
+            {itemsHeaders.map((header, index) => (
+              <th key={index} className="px-6 py-3 w-1/2">
+                <SortButton
+                  label={header.name}
+                  isSelected={key === header.key}
+                  onSort={() => sort(header.key)}
+                  direction={direction}
+                />
+              </th>
+            ))}
           </>
-        }
-        headers={
-          <>
-            <th className="px-6 py-3 w-1/2">
-              <SortButton
-                label="Material"
-                sortKey="name"
-                config={sort.config}
-                onSort={sort.handleSort}
-              />
-            </th>
-            <th className="px-6 py-3 w-1/4">
-              <SortButton
-                label="Cantidad"
-                sortKey="quantity"
-                config={sort.config}
-                onSort={sort.handleSort}
-              />
-            </th>
-          </>
-        }
-        footer={
-          <TablePagination
-            currentPage={pagination.current}
-            pages={pagination.pages}
-            records={pagination.records}
-            start={pagination.start}
-            end={pagination.end}
-            onPageChange={pagination.change}
-          />
-        }
-      >
-        {displayItems.map((item, index) => (
+        )}
+        renderRow={(item, index) => (
           <tr
             key={index}
             className="bg-neutral-primary-soft border-b border-default"
@@ -171,9 +119,10 @@ const OrderView = ({ id, navigateTo }) => {
             </td>
             <td className="px-6 py-4">{item.quantity}</td>
           </tr>
-        ))}
-      </TableLayout>
-      <TableLayout
+        )}
+      ></DataTable>
+      <DataTable
+        table={othersTable}
         rounded="bottom"
         actions={
           <>
@@ -192,48 +141,41 @@ const OrderView = ({ id, navigateTo }) => {
             </div>
           </>
         }
-        headers={
+        headers={({ sort, key, direction }) => (
           <>
-            <th className="px-6 py-3 w-1/2">
-              <SortButton
-                label="Material"
-                sortKey="name"
-                config={othersTable.sort.config}
-                onSort={othersTable.sort.handleSort}
-              />
-            </th>
-            <th className="px-6 py-3 w-1/4">
-              <SortButton
-                label="Cantidad"
-                sortKey="quantity"
-                config={othersTable.sort.config}
-                onSort={othersTable.sort.handleSort}
-              />
-            </th>
+            {othersHeaders.map((header, index) => (
+              <th key={index} className="px-6 py-3 w-1/2">
+                <SortButton
+                  label={header.name}
+                  isSelected={key === header.key}
+                  onSort={() => sort(header.key)}
+                  direction={direction}
+                />
+              </th>
+            ))}
           </>
-        }
-      >
-        {othersTable.displayItems.length === 0 ? (
+        )}
+        renderRow={(item, index) => (
+          <tr
+            key={index}
+            className="bg-neutral-primary-soft border-b border-default"
+          >
+            <td className="px-6 py-4 font-medium text-heading whitespace-nowrap">
+              {item.name}
+            </td>
+            <td className="px-6 py-4">{item.quantity}</td>
+          </tr>
+        )}
+        empty={
           <tr>
             <td colSpan="3" className="px-6 py-4 text-center text-heading">
               No hay otros materiales
             </td>
           </tr>
-        ) : (
-          othersTable.displayItems.map((item, index) => (
-            <tr
-              key={index}
-              className="bg-neutral-primary-soft border-b border-default"
-            >
-              <td className="px-6 py-4 font-medium text-heading whitespace-nowrap">
-                {item.name}
-              </td>
-              <td className="px-6 py-4">{item.quantity}</td>
-            </tr>
-          ))
-        )}
-      </TableLayout>
-    </div>
+        }
+        footer={false}
+      ></DataTable>
+    </Container>
   );
 };
 

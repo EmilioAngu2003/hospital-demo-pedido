@@ -1,4 +1,10 @@
-const Status = ({ status, variant = "gray", size = "XS", bordered = true }) => {
+const Status = ({
+  status,
+  variant = "gray",
+  size = "XS",
+  bordered = true,
+  text,
+}) => {
   const statuses = [
     {
       id: "stat-01",
@@ -57,9 +63,10 @@ const Status = ({ status, variant = "gray", size = "XS", bordered = true }) => {
     XL: "",
   };
 
-  if (status.id) {
+  if (status) {
     const type = statuses.find((stat) => stat.id === status.id);
     variant = type.variant;
+    text = status.name;
   }
 
   return (
@@ -69,9 +76,9 @@ const Status = ({ status, variant = "gray", size = "XS", bordered = true }) => {
       } ${variants[variant].variant} ${
         bordered ? variants[variant].border : ""
       }`}
-      title={status.name}
+      title={text}
     >
-      {status.name}
+      {text}
     </span>
   );
 };

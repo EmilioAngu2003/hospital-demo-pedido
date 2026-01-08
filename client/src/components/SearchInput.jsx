@@ -1,11 +1,17 @@
-const SearchInput = ({ onChange, placeholder }) => {
+import { useId } from "react";
+
+const SearchInput = ({ label, ...rest }) => {
+  const id = useId();
+
   return (
     <>
-      <label htmlFor="simple-search" className="sr-only">
-        Buscar Material
-      </label>
+      {label && (
+        <label htmlFor={id} className="sr-only">
+          {label}
+        </label>
+      )}
       <div className="relative">
-        <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none ">
+        <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
           <svg
             className="w-4 h-4 text-body"
             aria-hidden="true"
@@ -25,10 +31,9 @@ const SearchInput = ({ onChange, placeholder }) => {
         </div>
         <input
           type="text"
-          id="simple-search"
-          onChange={(e) => onChange(e.target.value)}
-          className="block w-full max-w-96 ps-9 pe-3 py-2 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body font-normal"
-          placeholder={placeholder}
+          id={id}
+          className="block w-full md:max-w-96 ps-9 pe-3 py-2.5 bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand shadow-xs placeholder:text-body font-normal"
+          {...rest}
         />
       </div>
     </>

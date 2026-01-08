@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Container from "./Container";
 import OrderForm from "./OrderForm";
 
 const Tabs = ({ templates, shifts }) => {
@@ -28,13 +29,13 @@ const Tabs = ({ templates, shifts }) => {
       {templates.map((t) => (
         <div
           key={t.id}
-          className={`p-4 rounded-b-base bg-neutral-secondary-soft ${
+          className={`rounded-b-base bg-neutral-secondary-soft ${
             t.id === activeTab ? "block" : "hidden"
           }`}
         >
-          <div>
+          <Container>
             <OrderForm template={t} service={t.service} shifts={shifts} />
-          </div>
+          </Container>
         </div>
       ))}
     </>

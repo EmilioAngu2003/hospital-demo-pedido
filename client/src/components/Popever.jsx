@@ -1,36 +1,25 @@
-import { useState } from "react";
+import { usePopover } from "../hooks/usePopover";
+import FloatingPortal from "./FloatingPortal";
 
 const Popever = ({ comment }) => {
-  const [isVisible, setIsVisible] = useState(false);
+  const { isOpen, getTriggerProps, getContentProps } = usePopover();
 
   return (
-    <div className="relative inline-block">
-      <button
-        type="button"
-        className="text-sm text-body flex items-center hover:text-heading"
-        onMouseEnter={() => setIsVisible(true)}
-        onMouseLeave={() => setIsVisible(false)}
-      >
+    <FloatingPortal
+      isOpen={isOpen}
+      placement="bottom-end"
+      getTriggerProps={getTriggerProps}
+      getContentProps={getContentProps}
+    >
+      <button className="text-sm text-body flex items-center hover:text-heading h-10 w-auto">
         Observacion
         <InfoIcon />
-        <span className="sr-only">Mostrar observacion</span>
       </button>
-      <div
-        className={`absolute z-10 p-3 text-sm text-body transition-opacity duration-300 bg-neutral-primary-soft border border-default rounded-base shadow-xs 
-        ${isVisible ? "opacity-100 visible" : "opacity-0 invisible"}`}
-      >
-        {comment ? (
-          <div>
-            <h3 className="font-semibold text-heading mb-2">Observacion</h3>
-            <p>{comment}</p>
-          </div>
-        ) : (
-          <div>
-            <p>No hay observacion</p>
-          </div>
-        )}
+      <div className="md:w-xs p-3 text-sm text-body transition-opacity duration-300 bg-neutral-primary-soft border border-default rounded-base shadow-xs">
+        <h3 className="font-semibold text-heading mb-2">Observacion</h3>
+        <p>{comment || "No hay observación disponible."}</p>
       </div>
-    </div>
+    </FloatingPortal>
   );
 };
 
@@ -39,7 +28,6 @@ const InfoIcon = () => {
     <svg
       className="w-4 h-4 ms-2"
       aria-hidden="true"
-      xmlns="http://www.w3.org/2000/svg"
       width="24"
       height="24"
       fill="none"

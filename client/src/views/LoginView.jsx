@@ -1,16 +1,23 @@
-import Button from "./Button";
+import { useNavigate } from "react-router-dom";
+import { useLogin } from "../hooks/useLogin";
+import Button from "../components/Button";
+import Alert from "../components/Alert";
 
-const Login = ({ onLogin }) => {
-  const handleSubmit = (e) => {
+const LoginView = ({ onLogin }) => {
+  const navigate = useNavigate();
+  const { login, loading, error, clearError } = useLogin();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
     const user = e.target.user.value;
     const password = e.target.password.value;
 
-    if (user === "admin@hospital.com" && password === "admin123") {
+    try {
+      await login(user, password);
       onLogin(true);
-    } else {
-      alert("Credenciales incorrectas");
+      navigate("/admin");
+    } catch (error) {
+      console.error("Error en login:", error);
     }
   };
 
@@ -21,6 +28,16 @@ const Login = ({ onLogin }) => {
           <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
             Iniciar sesión
           </h1>
+          {error && (
+            <Alert
+              message={
+                error === "Error en la petición"
+                  ? "Credenciales incorrectas"
+                  : error
+              }
+              onClose={clearError}
+            />
+          )}
           <form
             className="space-y-4 md:space-y-6"
             action="#"
@@ -28,7 +45,7 @@ const Login = ({ onLogin }) => {
           >
             <div className="mb-5">
               <label
-                for="user"
+                htmlFor="user"
                 className="block mb-2.5 text-sm font-medium text-heading"
               >
                 Usuario
@@ -43,7 +60,7 @@ const Login = ({ onLogin }) => {
             </div>
             <div className="mb-5">
               <label
-                for="password"
+                htmlFor="password"
                 className="block mb-2.5 text-sm font-medium text-heading"
               >
                 Contraseña
@@ -56,8 +73,8 @@ const Login = ({ onLogin }) => {
                 required
               />
             </div>
-            <Button type="submit" className="w-full">
-              Iniciar Sesión
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
             </Button>
           </form>
         </div>
@@ -66,4 +83,4 @@ const Login = ({ onLogin }) => {
   );
 };
 
-export default Login;
+export default LoginView;

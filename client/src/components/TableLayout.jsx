@@ -4,7 +4,6 @@ const TableLayout = ({
   children,
   footer,
   headers,
-  colSpan = 3,
   rounded = "both",
 }) => {
   const roundedClass = {
@@ -16,42 +15,35 @@ const TableLayout = ({
 
   return (
     <div
-      className={`relative overflow-x-auto bg-neutral-primary-soft shadow-xs border border-default ${roundedClass} `}
+      className={`relative overflow-hidden bg-neutral-primary-soft shadow-xs border border-default ${roundedClass} `}
     >
-      <table className="w-full text-sm text-left rtl:text-right text-body">
-        <thead className="text-sm text-body bg-neutral-secondary-medium border-b border-default-medium">
-          {title && (
-            <tr>
-              <th
-                colSpan={colSpan}
-                className="px-6 py-4 border-b-neutral-quaternary border-b"
-              >
-                <div className="flex items-center justify-center">
-                  <h3 className="text-heading">{title}</h3>
-                </div>
-              </th>
-            </tr>
-          )}
-          {actions && (
-            <tr>
-              <th colSpan={colSpan}>
-                <div className="flex flex-col items-center justify-between px-4 py-3 space-y-3 md:flex-row md:space-y-0 md:space-x-4 border-b-neutral-quaternary border-b">
-                  {actions}
-                </div>
-              </th>
-            </tr>
-          )}
-          {headers && <tr>{headers}</tr>}
-        </thead>
-        <tbody>{children}</tbody>
-        {footer && (
-          <tfoot>
-            <tr>
-              <td colSpan="100%">{footer}</td>
-            </tr>
-          </tfoot>
+      <div className="text-sm text-body bg-neutral-secondary-medium">
+        {title && (
+          <div className="px-6 py-4 border-b border-default-medium flex items-center justify-center">
+            <h3 className="text-heading font-semibold">{title}</h3>
+          </div>
         )}
-      </table>
+        {actions && (
+          <div className="flex flex-col md:flex-row items-center justify-between gap-3 px-4 py-3 border-b border-default-medium">
+            {actions}
+          </div>
+        )}
+      </div>
+
+      <div className="overflow-x-auto overflow-y-auto max-h-96">
+        <table className="w-full text-sm text-left rtl:text-right text-body border-separate border-spacing-0">
+          <thead className="sticky top-0 z-10 shadow-sm text-sm text-body bg-neutral-secondary-medium border-b border-default-medium">
+            {headers && <tr>{headers}</tr>}
+          </thead>
+          <tbody>{children}</tbody>
+        </table>
+      </div>
+
+      {footer && (
+        <div className="border-t border-default-medium p-4 bg-neutral-primary-soft">
+          {footer}
+        </div>
+      )}
     </div>
   );
 };

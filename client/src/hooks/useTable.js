@@ -1,15 +1,44 @@
+import { useEffect } from "react";
+
 import { useSearch } from "./useSearch";
-import { useSortable } from "./useSortable";
+import { useSmartSort } from "./useSortable";
 import { usePagination } from "./usePagination";
 
-export const useTable = (data, { searchKeys = [], rowsPerPage = 10 }) => {
+export const useTable = (data, options) => {
+  const {
+    searchKeys = [],
+    rowsPerPage = 10,
+    initialSortKey = null,
+    initialSortDirection = "desc",
+    customSorts = {},
+  } = options;
+
   const { query, setQuery, filteredItems } = useSearch(data, searchKeys);
-  const { sortedItems, sort, config, resetSort } = useSortable(filteredItems);
+  const { sortedItems, sort, config, reset, markDirty, isDirty } = useSmartSort(
+    filteredItems,
+    {
+      initialKey: initialSortKey,
+      initialDirection: initialSortDirection,
+      customSorts,
+    }
+  );
+
   const pagination = usePagination(sortedItems, rowsPerPage);
+
+  useEffect(() => {
+    pagination.change(1);
+  }, [query]);
+
   return {
-    displayItems: pagination.items,
+    items: pagination.items,
     search: { query, setQuery },
-    sort: { handleSort: sort, config, reset: resetSort },
+    sort: {
+      handleSort: sort,
+      config,
+      reset,
+      markDirty,
+      isDirty,
+    },
     pagination: {
       current: pagination.current,
       pages: pagination.pages,

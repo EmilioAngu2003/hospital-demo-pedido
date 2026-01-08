@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useSearch } from "./useSearch";
 import { useSelectable } from "./useSelectable";
+import { useDisclosure } from "./useDisclosure";
+import { useVirtualNavigation } from "./useKeyboardNavigation";
 
 export const useMultiSelect = ({ options, onChange, initialSelected = [] }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const { isOpen, open, close } = useDisclosure(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const { selected, select, deselect } = useSelectable(initialSelected);
   const { query, setQuery, filteredItems } = useSearch(options, ["label"]);
@@ -12,69 +14,73 @@ export const useMultiSelect = ({ options, onChange, initialSelected = [] }) => {
     (option) => !selected.find((s) => s.value === option.value)
   );
 
-  const handleSelect = (option) => {
-    const nextSelected = [...selected, option];
-    select(option);
-    setQuery("");
-    setIsOpen(false);
-    setActiveIndex(-1);
-    if (onChange) {
-      onChange(nextSelected.map((s) => s.value));
-    }
-  };
+  const handleSelect = useCallback(
+    (option) => {
+      if (!option) return;
+      select(option);
+      setQuery("");
+      setActiveIndex(-1);
+      if (onChange) {
+        onChange([...selected, option].map((s) => s.value));
+      }
+      close();
+    },
+    [selected, select, onChange, close, setQuery]
+  );
 
   const handleDeselect = (value) => {
-    const nextSelected = selected.filter((s) => s.value !== value);
     deselect(value);
     if (onChange) {
-      onChange(nextSelected.map((s) => s.value));
+      onChange(selected.filter((s) => s.value !== value).map((s) => s.value));
     }
   };
 
-  const handleKeyDown = (e, query) => {
-    if (!isOpen) {
-      if (e.key === "ArrowDown") setIsOpen(true);
-      return;
-    }
+  const onQueryChange = (val) => {
+    setQuery(val);
+    if (!isOpen) open();
+    setActiveIndex(availableOptions.length > 0 ? 0 : -1);
+  };
 
-    switch (e.key) {
-      case "ArrowDown":
-        e.preventDefault();
-        setActiveIndex((prev) =>
-          prev < availableOptions.length - 1 ? prev + 1 : prev
-        );
-        break;
-      case "ArrowUp":
-        e.preventDefault();
-        setActiveIndex((prev) => (prev > 0 ? prev - 1 : 0));
-        break;
-      case "Enter":
-        e.preventDefault();
-        if (activeIndex >= 0 && availableOptions[activeIndex]) {
+  const navigate = useVirtualNavigation(
+    {
+      listLength: availableOptions.length,
+      activeIndex,
+      setActiveIndex,
+      query,
+    },
+    {
+      close: () => {
+        close();
+        setActiveIndex(-1);
+      },
+      onSelect: () => {
+        if (activeIndex >= 0 && activeIndex < availableOptions.length) {
           handleSelect(availableOptions[activeIndex]);
         }
-        break;
-      case "Escape":
-        setIsOpen(false);
-        break;
-      case "Backspace":
-        if (query === "" && selected.length > 0) {
+      },
+      onDelete: () => {
+        if (query.length === 0 && selected.length > 0) {
           handleDeselect(selected[selected.length - 1].value);
         }
-        break;
-      default:
-        break;
+      },
     }
+  );
+
+  const handleKeyDown = (e) => {
+    if (!isOpen && e.key === "ArrowDown") open();
+
+    navigate(e);
   };
 
   return {
     isOpen,
-    setIsOpen,
+    open,
+    close,
     activeIndex,
     setActiveIndex,
     handleKeyDown,
     query,
-    setQuery,
+    onQueryChange,
     selected,
     handleSelect,
     handleDeselect,

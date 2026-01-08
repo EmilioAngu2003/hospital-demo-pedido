@@ -11,7 +11,7 @@ const TablePagination = ({
       <span className="text-sm font-normal text-body mb-4 md:mb-0 block md:inline md:w-auto">
         Mostrando{" "}
         <span className="font-semibold text-heading">
-          {start}-{end}
+          {start} - {end}
         </span>{" "}
         de <span className="font-semibold text-heading">{records}</span>
       </span>
@@ -21,9 +21,9 @@ const TablePagination = ({
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
             type="button"
-            className={`flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium font-medium rounded-s-base text-sm px-3 h-9 focus:outline-none ${
+            className={`flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium font-medium rounded-s-base text-sm px-3 h-9 ${
               currentPage === 1
-                ? "opacity-50"
+                ? "opacity-50 focus:outline-none"
                 : "cursor-pointer hover:bg-neutral-tertiary-medium hover:text-heading"
             }`}
           >
@@ -51,9 +51,9 @@ const TablePagination = ({
             type="button"
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === pages || pages === 0}
-            className={`flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium font-medium rounded-e-base text-sm px-3 h-9 focus:outline-none ${
+            className={`flex items-center justify-center text-body bg-neutral-secondary-medium box-border border border-default-medium font-medium rounded-e-base text-sm px-3 h-9  ${
               currentPage === pages || pages === 0
-                ? "opacity-50"
+                ? "opacity-50 focus:outline-none"
                 : "cursor-pointer hover:bg-neutral-tertiary-medium hover:text-heading"
             }`}
           >

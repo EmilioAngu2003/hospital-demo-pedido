@@ -1,42 +1,59 @@
-import { useState } from "react";
+import { Link } from "react-router-dom";
+import { offset } from "@floating-ui/react";
+import { useDropdown } from "../hooks/useDropdown";
+import Button from "./Button";
+import FloatingPortal from "./FloatingPortal";
 
-const DropdownMenu = ({ options }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const toggleMenu = () => setIsOpen(!isOpen);
-
-  const handleOptionClick = (option) => {
-    option.onClick();
-    setIsOpen(false);
-  };
+const DropdownMenu = ({ options = [] }) => {
+  const { isOpen, getTriggerProps, getContentProps, close } =
+    useDropdown(false);
 
   return (
-    <div className="relative inline-block text-left">
-      <button
-        className="text-heading bg-neutral-primary box-border border border-transparent hover:bg-neutral-secondary-medium focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-base text-sm p-2 focus:outline-none"
-        type="button"
-        onClick={toggleMenu}
+    <FloatingPortal
+      isOpen={isOpen}
+      middleware={[offset(2)]}
+      placement="bottom-end"
+      getTriggerProps={getTriggerProps}
+      getContentProps={getContentProps}
+    >
+      <Button
+        variant="ghost"
+        className="focus:ring-4 focus:ring-neutral-tertiary"
       >
+        <span className="sr-only">Abrir menu</span>
         <MenuIcon />
-      </button>
-      {isOpen && (
-        <div className="z-10 absolute right-0 mt-2 bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-44 dark:divide-gray-600">
-          <ul className="p-2 text-sm text-body font-medium">
-            {options.map((option) => (
-              <li key={option}>
-                <a
-                  href="#"
+      </Button>
+
+      <div className="bg-neutral-primary-medium border border-default-medium rounded-base shadow-lg w-44 dark:divide-gray-600">
+        <ul className="p-2 text-sm text-body font-medium" role="menu">
+          {options.map((option, index) => (
+            <li key={index} role="none">
+              {option.href ? (
+                <Link
+                  role="menuitem"
                   className="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded text-left"
-                  onClick={() => handleOptionClick(option)}
+                  to={option.href}
+                  onClick={close}
                 >
                   {option.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
+                </Link>
+              ) : (
+                <button
+                  role="menuitem"
+                  className="inline-flex items-center w-full p-2 hover:bg-neutral-tertiary-medium hover:text-heading rounded text-left"
+                  onClick={() => {
+                    option.onClick?.(index);
+                    close();
+                  }}
+                >
+                  {option.label}
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </FloatingPortal>
   );
 };
 

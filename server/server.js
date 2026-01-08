@@ -11,6 +11,7 @@ const {
   SHIFTS_BASE,
 } = require("./constants");
 const dotenv = require("dotenv");
+const jwt = require("jsonwebtoken");
 
 dotenv.config({ path: ".env" });
 
@@ -96,8 +97,22 @@ const adminAuth = (req, res, next) => {
   }
 };
 
-app.get("/api/auth/admin", apiKeyAuth, adminAuth, (req, res) => {
-  res.json({ isAdmin: true, message: "Identidad de administrador confirmada" });
+app.post("/api/auth/admin", apiKeyAuth, (req, res) => {
+  const { user, password } = req.body;
+
+  console.log("🚀 Credenciales recibidas:", user, password);
+
+  const adminUser = process.env.ADMIN_USER;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (user === adminUser && password === adminPassword) {
+    const token = jwt.sign({ role: "admin" }, process.env.JWT_API_KEY, {
+      expiresIn: "8h",
+    });
+    return res.json({ token });
+  }
+
+  res.status(401).json({ error: "Credenciales inválidas" });
 });
 
 app.patch("/api/pedidos/:id", apiKeyAuth, adminAuth, async (req, res) => {
@@ -294,12 +309,10 @@ app.post("/api/orders", apiKeyAuth, async (req, res) => {
 
     const skip = (page - 1) * step;
     const sortDirection = direction === "desc" ? -1 : 1;
+    const sortOptions = key ? { [key]: sortDirection } : {};
 
     const [orders, totalRecords] = await Promise.all([
-      Order.find(query)
-        .sort({ [key]: sortDirection })
-        .skip(skip)
-        .limit(step),
+      Order.find(query).sort(sortOptions).skip(skip).limit(step),
       Order.countDocuments(query),
     ]);
 
@@ -342,6 +355,21 @@ app.get("/api/order/:id", apiKeyAuth, async (req, res) => {
     res.status(500).json({ error: "Error interno al obtener el pedido" });
   }
 });
+
+const verifyToken = (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+
+  if (!token) return res.status(403).json({ error: "Acceso denegado" });
+
+  try {
+    const verified = jwt.verify(token, process.env.JWT_API_KEY);
+    req.admin = verified;
+    next();
+  } catch (error) {
+    res.status(401).json({ error: "Token inválido o expirado" });
+  }
+};
 
 app.listen(port, () => {
   console.log(`🚀 Servidor Express escuchando en http://localhost:${port}`);
