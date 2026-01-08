@@ -13,4 +13,22 @@ export const orderService = {
       body: JSON.stringify(orderData),
     });
   },
+  getOrder: async (id) => {
+    return await apiClient(`/api/order/${id}`, {
+      method: "GET",
+      headers: {
+        "x-api-key": MY_API_KEY,
+      },
+    });
+  },
+  getOrders: async (filters) => {
+    return await apiClient("/api/orders", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": MY_API_KEY,
+      },
+      body: JSON.stringify(filters),
+    });
+  },
 };
